@@ -7,6 +7,7 @@ from valid8 import validate
 
 from validation.dataclasses import validate_dataclass
 from validation.regex import pattern
+import datetime
 
 
 @dataclass(frozen=True, order=True)
@@ -121,6 +122,21 @@ class Genre:
     def __post_init__(self):
         validate_dataclass(self)
         validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'Funk,Rock,Metal,Pop,Hip Hop,Country,Blues,Jazz'))
+
+    def __str__(self):
+        return self.value
+
+    def __str__(self):
+        return self.title
+
+
+@dataclass(frozen=True, order=True)
+class Content:
+    body: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('body', self.body, min_len=1, max_len=1000, custom=pattern(r'^[\w\s.:;\'"]*$'))
 
     def __str__(self):
         return self.value
