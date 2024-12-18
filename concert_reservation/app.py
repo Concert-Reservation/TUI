@@ -1,6 +1,7 @@
 import csv
 import sys
 import getpass
+from xmlrpc.client import DateTime
 
 import requests
 from pathlib import Path
@@ -8,7 +9,7 @@ from typing import Any, Tuple, Callable
 
 from valid8 import validate, ValidationError
 
-from concert_reservation.domain import Author, Title, Genre, Venue, Rating, Review, ReviewArchive
+from concert_reservation.domain import Author, Title, Genre, Venue, Rating, Review, Content, Date, ReviewArchive
 from concert_reservation.menu import Menu, Description, Entry
 
 
@@ -130,9 +131,17 @@ class App:
         data_reviewed = self.__read('Date Reviewed', Date)
         rating = self.__read('Rating', Rating)
 
-        review = Review(author, title, content, genre, venue, data_concert, data_reviewed, rating)
-        self.__ReviewArchive.add_review(review)
-        self.__save()
+        res = requests.post(url=f'{self._api_url}/reviews/add', #url corretto?
+                            data={'author': author, 'title': title, 'content': content, 'genre': genre,
+                                  'venue': venue, 'data_concert': data_concert,
+                                  'data_reviewed': data_reviewed, 'rating': rating
+                                  })
+
+        if res.status_code != 201:
+            print("Something went wrong. Retry")
+            return
+        print("Review added successfully!!")
+
 
     def __remove_review(self):
         def builder(value: str) -> int:
@@ -150,6 +159,7 @@ class App:
         reviews = [self.__ReviewArchive.review_at_index(index) for index in
                     range(self.__ReviewArchive.number_of_reviews)]
         self.__print_reviews_internal(reviews)
+
 
     def __register(self):
         username = input("Name:")

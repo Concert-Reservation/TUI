@@ -1,14 +1,15 @@
 import re
 from dataclasses import dataclass, InitVar, field
 from typing import Any
+from xmlrpc.client import DateTime
 
 from typeguard import typechecked
 from valid8 import validate
 
 from validation.dataclasses import validate_dataclass
 from validation.regex import pattern
+import datetime
 
-#content, genre,venue,rating,date,
 
 @dataclass(frozen=True, order=True)
 class Author:
@@ -39,6 +40,18 @@ class Title:
     def __str__(self):
         return self.value
 
+
+
+@dataclass(frozen=True, order=True)
+class Content:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('value', self.value, min_len=1, max_len=1000, custom=pattern(r'^[\w\s.:;\'"]*$'))
+
+    def __str__(self):
+        return self.value
 
 
 @dataclass(frozen=True, order=True)
@@ -78,22 +91,33 @@ class Rating:
 
 
 @dataclass(frozen=True, order=True)
+class Date:
+    value: datetime
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('value', self.value, max_value=datetime.datetime.now(), custom=typechecked )
+
+    def __str__(self):
+        return f'{self.value}'
+
+@dataclass(frozen=True, order=True)
 class Review:
     author: Author
     title: Title
-    content: str #da rivedere
-    genre: Genre #da rivedere
+    content: Content
+    genre: Genre
     venue: Venue
-    data_concert: str #da rivedere
-    data_reviewed: str #da rivedere
+    data_concert: DateTime
+    data_reviewed: DateTime
     rating: Rating
 
     @staticmethod
     def of(author: str, title:str, content:str, genre:str, venue:str, data_concert:str, data_reviewed:str, rating:int) -> 'Review':
         return Review(Author(author),
                       Title(title),
-                      content, Genre(genre), Venue(venue),
-                      #Date(data_concert), Date(data_reviewed),
+                      Content(content), Genre(genre), Venue(venue),
+                      DateTime(data_concert), DateTime(data_reviewed),
                       Rating(rating))
 
     def __str__(self):
@@ -122,5 +146,7 @@ class ReviewArchive:
 
     def sort_by_ascending_rating(self) -> None:
         self.__review.sort(key=lambda review: review.rating)
+
+
 
 
