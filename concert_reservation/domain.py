@@ -60,12 +60,11 @@ class Genre:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'Funk,Rock,Metal,Pop,Hip Hop,Country,Blues,Jazz'))
+        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'^(Funk|Rock|Metal|Pop|Hip Hop|Country|Blues|Jazz)$'
+))
 
     def __str__(self):
-        return self.value
-
-
+        return f'{self.value}'
 
 @dataclass(frozen=True, order=True)
 class Venue:
@@ -128,7 +127,6 @@ class Review:
 class ReviewArchive:
     __review: list[Review] = field(default_factory=list, init=False)
 
-    @property
     def number_of_reviews(self) -> int:
         return len(self.__review)
 
@@ -145,7 +143,7 @@ class ReviewArchive:
         self.__review.remove(review)
 
     def sort_by_ascending_rating(self) -> None:
-        self.__review.sort(key=lambda review: review.rating)
+        self.__review.sort(key=lambda x: x.rating, reverse=True)
 
 
 

@@ -1,11 +1,16 @@
 from pathlib import Path
 from unittest.mock import patch, mock_open, Mock
+
+import concert_reservation.app
 from  concert_reservation.__main__ import main
 
 import pytest
 
 from concert_reservation.app import App
 from concert_reservation.domain import *
+
+import pytest
+from unittest.mock import patch, Mock, call
 
 @pytest.fixture #indica che è una funzione di setup
 def mock_path():
@@ -27,6 +32,47 @@ def test_app_add_song(mocked_print, mocked_input, mock_path):
     mocked_input.assert_called()
 
 
+
+
+@patch('builtins.input', side_effect=[
+    '6', 'Author Name', 'Review Title', 'Great concert!', 'Rock',
+    'Venue Name', '2024-12-01', '2024-12-05', '5'
+])
+@patch('builtins.print')
+@patch('requests.post')
+def test_private_add_review(mocked_post, mocked_print, mocked_input):
+    # Simula una risposta valida dal costruttore
+    with patch('app.Genre', side_effect=lambda x: x):
+        mocked_post.return_value = Mock(status_code=201)
+
+        # Inizializza l'oggetto App
+        app = App()
+
+        # Accedi e testa il metodo privato tramite name mangling
+        app._App__add_review()
+
+        # Verifica che la richiesta POST sia stata fatta con i parametri corretti
+        mocked_post.assert_called_once_with(
+            url=f'{app._api_url}/reviews/add',
+            data={
+                'author': 'Author Name',
+                'title': 'Review Title',
+                'content': 'Amazing concert!',
+                'genre': 'Rock',
+                'venue': 'Venue Name',
+                'data_concert': '2024-12-01',
+                'data_reviewed': '2024-12-05',
+                'rating': '5',
+            }
+        )
+
+        # Verifica che il messaggio di successo sia stato stampato
+        mocked_print.assert_called_with("Review added successfully!!")
+
+    # Test per lo scenario di errore (cambia status_code)
+    mocked_post.return_value.status_code = 400
+    app._App__add_review()
+    mocked_print.assert_called_with("Something went wrong. Retry")
 
 
 '''

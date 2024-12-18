@@ -31,7 +31,6 @@ class App:
             .with_entry(Entry.create('7','Remove Review',on_selected=lambda: self.__remove_review())) \
             .with_entry(Entry.create('0','Exit', on_selected=lambda: print('Bye!'), is_exit=True)) \
             .build()
-
         self.__ReviewArchive = ReviewArchive()
         # init mutable state
 
