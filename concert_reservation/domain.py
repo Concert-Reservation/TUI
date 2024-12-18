@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, InitVar, field
 from typing import Any
 
+from typeguard import typechecked
 from valid8 import validate
 
 from validation.dataclasses import validate_dataclass
@@ -23,7 +24,6 @@ class Id:
 
     def __str__(self):
         return str(self.value)
-
 
 
 @dataclass(frozen=True, order=True)
@@ -71,27 +71,44 @@ class Title:
     def __str__(self):
         return self.value
 
+
 @dataclass(frozen=True, order=True)
-class Concert:
+class Reservation:
     id: Id
-    client: Client
     title: Title
+    client: Client
     date: Date
 
     def __post_init__(self):
         validate_dataclass(self)
 
+
+
 @dataclass(frozen=True, order=True)
-class Reservation:
-    __concerts: list[Concert] = field(default_factory=list, init=False)
+class Concert:
+    __reservation: list[Reservation] = field(default_factory=list, init=False)
+    id: Id
+    client: Client
+    title: Title
+    date: Date
+
+
+    def __post_init__(self):
+        validate_dataclass(self) #da rivedere obv
 
     @property
-    def number_of_concerts(self) -> int:
-        return len(self.__concerts)
+    def number_of_reservation(self) -> int:
+        return len(self.__reservation)
 
-    def concert_at_index(self, index: int) -> Concert:
-        return self.__concerts[index]
+    def reservation_at_index(self, index: int) -> Reservation:
+        return self.__reservation[index]
 
-    def add_concert(self, concert: Concert) -> None:
-        self.__concerts.append(concert)
+    def reservation_by_user(self, user: Client) -> list[Reservation]:
+        return list(filter(lambda x: x.client == user, self.__reservation))
+
+    def add_reservation(self, reservation: Reservation) -> None:
+        self.__reservation.append(reservation)
+
+    def remove_reservation(self, reservation: Reservation) -> None:
+        self.__reservation.remove(reservation)
 

@@ -26,8 +26,11 @@ class App:
             .with_entry(Entry.create('3','Login',on_selected=lambda : self.__login()))\
             .with_entry(Entry.create('4','Logout',on_selected=lambda :self.__logout()))\
             .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye!'), is_exit=True))\
+            .with_entry(Entry.create('2','Add Reservation',on_selected=lambda: self.__add_reservation()))\
+            .with_entry(Entry.create('3','Remove Reservation',on_selected=lambda: self.__remove_reservation()))\
             .build()
-        self.__reservation=Reservation()
+
+        self.__concert=Concert()#Da cambiare
         # init mutable state
 
 
@@ -93,7 +96,7 @@ class App:
                 print(e)
 
     @staticmethod
-    def __print_concerts_internal(concerts):
+    def __print_reservations_internal(reservations):
         def print_sep():
             print('-' * 100)
 
@@ -101,48 +104,32 @@ class App:
         fmt = '%3s %-10s %-30s %10s'
         print(fmt % ('#', 'TITLE', 'DATE', 'CLIENT'))
         print_sep()
-        for index, concert in enumerate(concerts):
-            print(fmt % (index + 1, concert.title, concert.date, concert.client))
+        for index, reservation in enumerate(reservations):
+            print(fmt % (index + 1, reservation.title, reservation.date, reservation.client))
         print_sep()
 
-    def __show_concerts(self):
-        concerts = [self.__reservation.concert_at_index(index) for index in range(self.__reservation.number_of_concerts)]
-        self.__print_concerts_internal(concerts)
+    def __show_reservation(self):
+        reservations = [self.__concert.reservation_at_index(index) for index in range(self.__concert.number_of_reservation)]
+        self.__print_reservations_internal(reservations)
 
-    def __register(self):
-        username = input("Name:" )
-        email=input("Email:" )
-        password1= input('Password:' )
-        password2=input('Password confirmation:' )
-        if password1!=password2:
-            print("Passwords don't match! Retry")
+    #Da rivedere insieme a client
+    def __add_reservation(self): #id, client, title, date
+        client = self.__read('Client', Client)
+        title = self.__read('Title', Title)
+        date = self.__read('Date', Date)
+
+        reservation = Reservation(client, title, date)
+        self.__concert.add_reservation(reservation)
+        self.__save()
+
+    def __remove_reservation(self):
+        def builder(value: str) -> int:
+            validate('value', int(value), min_value=0, max_value=self.__concert.number_of_reservation)
+            return int(value)
+
+        index = self.__read('Index (0 to cancel)', builder)
+        if index == 0:
+            print('Cancelled!')
             return
-        res = requests.post(url=f'{self._api_url}/auth/registration/', data={'username': username,'email': email,'password1': password1,'password2': password2})
-        if res.status_code != 201:
-            print("Something went wrong. Retry")
-            return
-        print("Sign-up successful!!")
-
-
-    def __login(self):
-        username = input('Username: ')
-        password = getpass.getpass('Password: ')
-        res = requests.post(url=f'{self._api_url}/auth/login/', data={'username': username, 'password': password})
-        if res.status_code != 200:
-            print("Something went wrong. Retry")
-            return
-        print("Login successful!")
-        json = res.json()
-        self._key=json['key']
-    def __logout(self):
-        res = requests.post(url=f'{self._api_url}/auth/logout/', headers={'Authorization': f'Token {self._key}'})
-        if res.status_code == 200:
-            print('Logged out!')
-        else:
-            print('Log out failed')
-        self._key=None
-        print()
-
-
-
-
+        self.__concert.remove_reservation(index - 1)
+        self.__save()
