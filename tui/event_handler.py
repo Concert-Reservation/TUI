@@ -1,3 +1,5 @@
+import requests
+
 from concert import Concert
 from ticket import Ticket
 

@@ -7,3 +7,6 @@ class Concert:
         self.end_date = end_date
         self.price = price
         self.seat_limit = seat_limit
+
+    def __str__(self):
+        return f"{self.name} ({self.start_date} to {self.end_date})"
