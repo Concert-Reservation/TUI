@@ -112,3 +112,18 @@ class Concert:
     def remove_reservation(self, reservation: Reservation) -> None:
         self.__reservation.remove(reservation)
 
+
+
+@dataclass(frozen=True, order=True)
+class Genre:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'Funk,Rock,Metal,Pop,Hip Hop,Country,Blues,Jazz'))
+
+    def __str__(self):
+        return self.value
+
+    def __str__(self):
+        return self.title
