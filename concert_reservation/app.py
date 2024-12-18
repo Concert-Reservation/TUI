@@ -8,32 +8,31 @@ from typing import Any, Tuple, Callable
 
 from valid8 import validate, ValidationError
 
-from concert_reservation.domain import Date,Client,Title,Concert,Reservation,Id
+from concert_reservation.domain import Author, Title, Venue, Rating, Review, ReviewArchive
 from concert_reservation.menu import Menu, Description, Entry
 
 
 class App:
-    #__filename = Path(__file__).parent.parent / 'default.csv'
-    #__delimiter = '\t'
+    __filename = Path(__file__).parent.parent / 'default.csv'
+    __delimiter = '\t'
     _api_url = 'http://127.0.0.1:8000/api/v1'
     _key=None
 
 
     def __init__(self):
-        self.__menu = Menu.Builder(Description('Concert Reservation'), auto_select=lambda: None)\
-            .with_entry(Entry.create('1','Show Concerts',on_selected=lambda: self.__show_concerts()))\
-            .with_entry(Entry.create('2', "Sign-Up", on_selected=lambda: self.__register()))\
-            .with_entry(Entry.create('3','Login',on_selected=lambda : self.__login()))\
-            .with_entry(Entry.create('4','Logout',on_selected=lambda :self.__logout()))\
-            .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Bye!'), is_exit=True))\
-            .with_entry(Entry.create('5','Add Reservation',on_selected=lambda: self.__add_reservation()))\
-            .with_entry(Entry.create('6','Remove Reservation',on_selected=lambda: self.__remove_reservation()))\
+        self.__menu = Menu.Builder(Description('Concert Reviews 2024'), auto_select=lambda: None)\
+            .with_entry(Entry.create('1', 'Show Reviews', on_selected=lambda: self.__show_reviews()))\
+            .with_entry(Entry.create('2', 'Show By Rating', on_selected=lambda: self.__show_sorted_reviews()))\
+            .with_entry(Entry.create('3', 'Sign-Up', on_selected=lambda: self.__register()))\
+            .with_entry(Entry.create('4','Login',on_selected=lambda : self.__login()))\
+            .with_entry(Entry.create('5','Logout',on_selected=lambda :self.__logout()))\
+            .with_entry(Entry.create('6','Add Review',on_selected=lambda: self.__add_review()))\
+            .with_entry(Entry.create('7','Remove Review',on_selected=lambda: self.__remove_review())) \
+            .with_entry(Entry.create('0','Exit', on_selected=lambda: print('Bye!'), is_exit=True)) \
             .build()
 
-        #self.__concert=Concert()#Da cambiare
+        self.__ReviewArchive = ReviewArchive()
         # init mutable state
-
-
 
     def __run(self) -> None:
         try:
@@ -52,16 +51,19 @@ class App:
     def __load(self) -> None:
         try:
             # Endpoint dell'API per i concerti
-            url = f"{self._api_url}/concerts/"
+            url = f"{self._api_url}/reviews/"
             response = requests.get(url)
             # Controllo dello stato della risposta
             if response.status_code == 200:
                 # Converti la risposta JSON in una lista di concerti
-                concerts_data = response.json()
-                for concert in concerts_data:
+                reviews_data = response.json()
+                for review in reviews_data:
                     # Estrai e salva ogni campo
-                    c=Concert(title=Title(concert['title']),id=Id(concert['id']),date=Date(concert['date']),client=Client(concert['client']))
-                    self.__reservation.add_concert(c)
+                    r = Review(Author(review['author']),
+                               Title(review['title']), review['content'], review['genre'],
+                               Venue(review['venue']), review['data_concert'], review['data_reviewed'],
+                               Rating(review['rating']))
+                    self.__ReviewArchive.add_review(r)
 
                 print("Concerti caricati con successo!")
             else:
@@ -78,12 +80,13 @@ class App:
                 #...
 
 
-    #def __save(self) -> None:
-        #with open(self.__filename, 'w') as file:
-            #writer = csv.writer(file, delimiter=self.__delimiter, lineterminator='\n')
-            # for index in range(self.__dealer.vehicles()):
-            #     vehicle = self.__dealer.vehicle(index)
-            #     writer.writerow([vehicle.type, vehicle.plate, vehicle.producer, vehicle.model, vehicle.price])
+    def __save(self) -> None:
+        with open(self.__filename, 'w') as file:
+            writer = csv.writer(file, delimiter=self.__delimiter, lineterminator='\n')
+            for index in range(self.__ReviewArchive.number_of_reviews):
+                review = self.__ReviewArchive.review_at_index(index)
+                writer.writerow([review.author, review.title, review.content, review.genre, review.venue, review.data_concert, review.data_reviewed, review.rating])
+
 
     @staticmethod
     def __read(prompt: str, builder: Callable) -> Any:
@@ -96,48 +99,57 @@ class App:
                 print(e)
 
     @staticmethod
-    def __print_reservations_internal(reservations):
+    def __print_reviews_internal(reviews : list[Review]):
         def print_sep():
             print('-' * 100)
 
         print_sep()
         fmt = '%3s %-10s %-30s %10s'
-        print(fmt % ('#', 'TITLE', 'DATE', 'CLIENT'))
+        print(fmt % ('#', 'TITLE', 'AUTHOR', 'CONTENT', 'GENRE', 'VENUE', 'DATE_CONCERT', 'DATE_REVIEWED', 'RATING'))
         print_sep()
-        for index, reservation in enumerate(reservations):
-            print(fmt % (index + 1, reservation.title, reservation.date, reservation.client))
+        for index, review in enumerate(reviews):
+            print(fmt % (index + 1, review.title, review.author, review.content, review.genre, review.venue, review.data_concert, review.data_reviewed, review.rating))
         print_sep()
 
-    def __show_reservation(self):
-        reservations = [self.__concert.reservation_at_index(index) for index in range(self.__concert.number_of_reservation)]
-        self.__print_reservations_internal(reservations)
+    def __show_review(self):
+        reviews = [self.__ReviewArchive.review_at_index(index) for index in range(self.__ReviewArchive.number_of_reviews)]
+        self.__print_reviews_internal(reviews)
+
+    def __show_sorted_reviews(self):
+        reviews = self.__ReviewArchive.sort_by_ascending_rating
+        self.__print_reviews_internal(reviews)
 
     #Da rivedere insieme a client
-    def __add_reservation(self): #id, client, title, date
-        client = self.__read('Client', Client)
+    def __add_review(self): #id, client, title, date
+        author = self.__read('Author', Author)
         title = self.__read('Title', Title)
-        date = self.__read('Date', Date)
+        content = self.__read('Content', Content)
+        genre = self.__read('Genre', Genre)
+        venue = self.__read('Venue', Venue)
+        data_concert = self.__read('Date Concert', Date)
+        data_reviewed = self.__read('Date Reviewed', Date)
+        rating = self.__read('Rating', Rating)
 
-        reservation = Reservation(client, title, date)
-        self.__concert.add_reservation(reservation)
+        review = Review(author, title, content, genre, venue, data_concert, data_reviewed, rating)
+        self.__ReviewArchive.add_review(review)
         self.__save()
 
-    def __remove_reservation(self):
+    def __remove_review(self):
         def builder(value: str) -> int:
-            validate('value', int(value), min_value=0, max_value=self.__concert.number_of_reservation)
+            validate('value', int(value), min_value=0, max_value=self.__ReviewArchive.number_of_reviews)
             return int(value)
 
         index = self.__read('Index (0 to cancel)', builder)
         if index == 0:
             print('Cancelled!')
             return
-        self.__concert.remove_reservation(index - 1)
+        self.__ReviewArchive.remove_review(index - 1)
         self.__save()
 
-    def __show_concerts(self):
-        concerts = [self.__reservation.concert_at_index(index) for index in
-                    range(self.__reservation.number_of_concerts)]
-        self.__print_concerts_internal(concerts)
+    def __show_reviews(self):
+        reviews = [self.__ReviewArchive.review_at_index(index) for index in
+                    range(self.__ReviewArchive.number_of_reviews)]
+        self.__print_reviews_internal(reviews)
 
     def __register(self):
         username = input("Name:")
@@ -153,6 +165,7 @@ class App:
             print("Something went wrong. Retry")
             return
         print("Sign-up successful!!")
+
 
     def __login(self):
         username = input('Username: ')

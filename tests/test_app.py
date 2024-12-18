@@ -1,6 +1,58 @@
+from pathlib import Path
+from unittest.mock import patch, mock_open, Mock
+
 import pytest
 
 from concert_reservation.domain import *
+
+@pytest.fixture
+def mock_path():
+    Path.exists = Mock()
+    Path.exists.return_value = True
+    return Path
+
+@pytest.fixture
+def data():
+    data = [
+        ['author 1', 'title 1', 'i like very much this songs','rock','Milan', '2024-10-10', '2024-10-10', 8],
+        ['author 2', 'title 2', 'i love very much this ','pop','Rome', '2024-10-10', '2024-10-10', 9],
+        ['author 3', 'title 3', 'i like very much this artist','jazz','Naples', '2024-10-10', '2024-10-10', 10],
+    ]
+    return '\n'.join(['\t'.join(d) for d in data])
+
+def assert_in_output(mocked_print, expected):
+    mock_calls = '\n'.join([''.join(mock_call.args) for mock_call in mocked_print.mock_calls])
+    assert expected.strip() in mock_calls
+
+
+@patch('builtins.input', side_effect=['0'])
+@patch('builtins.print')
+def test_app_main(mocked_print, mocked_input):
+    with patch.object(Path, 'exists') as mocked_path_exists:
+        mocked_path_exists.return_value = False
+        with patch('builtins.open', mock_open()):
+            main('__main__')
+            mocked_print.assert_any_call('*** Concert Reservation 2024 ***')
+            mocked_print.assert_any_call('0:\tExit')
+            mocked_print.assert_any_call('Bye!')
+            mocked_input.assert_called()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #Da cambiare, concert e reservation invertiti
