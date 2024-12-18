@@ -2,6 +2,8 @@ import pytest
 
 from concert_reservation.domain import *
 
+
+#Da cambiare, concert e reservation invertiti
 def test_add_concert():
     reservation = Reservation()
     concert = Concert(Id(1), Client(2), Title("Concert1"), Date("2024-10-10"))
