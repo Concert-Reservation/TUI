@@ -40,6 +40,20 @@ class Title:
         return self.value
 
 
+
+@dataclass(frozen=True, order=True)
+class Genre:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'Funk,Rock,Metal,Pop,Hip Hop,Country,Blues,Jazz'))
+
+    def __str__(self):
+        return self.value
+
+
+
 @dataclass(frozen=True, order=True)
 class Venue:
     value: str
@@ -62,12 +76,13 @@ class Rating:
     def __str__(self):
         return str(self.value)
 
+
 @dataclass(frozen=True, order=True)
 class Review:
     author: Author
     title: Title
-    content:str #da rivedere
-    genre: str #da rivedere
+    content: str #da rivedere
+    genre: Genre #da rivedere
     venue: Venue
     data_concert: str #da rivedere
     data_reviewed: str #da rivedere
@@ -77,7 +92,7 @@ class Review:
     def of(author: str, title:str, content:str, genre:str, venue:str, data_concert:str, data_reviewed:str, rating:int) -> 'Review':
         return Review(Author(author),
                       Title(title),
-                      content, genre, Venue(venue),
+                      content, Genre(genre), Venue(venue),
                       #Date(data_concert), Date(data_reviewed),
                       Rating(rating))
 
@@ -109,17 +124,3 @@ class ReviewArchive:
         self.__review.sort(key=lambda review: review.rating)
 
 
-
-@dataclass(frozen=True, order=True)
-class Genre:
-    value: str
-
-    def __post_init__(self):
-        validate_dataclass(self)
-        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'Funk,Rock,Metal,Pop,Hip Hop,Country,Blues,Jazz'))
-
-    def __str__(self):
-        return self.value
-
-    def __str__(self):
-        return self.title

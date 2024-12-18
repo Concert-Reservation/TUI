@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="187d88bb-b76b-4e15-8c3b-507a9337d3dd" name="Changes" comment="Bozza di reservation">
-      <change afterPath="$PROJECT_DIR$/tests/test_domain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/concert_reservation/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/concert_reservation/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/concert_reservation/domain.py" beforeDir="false" afterPath="$PROJECT_DIR$/concert_reservation/domain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_reservation.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_app.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,7 +209,7 @@
       <workItem from="1734467585044" duration="1093000" />
       <workItem from="1734516259580" duration="7706000" />
       <workItem from="1734531645389" duration="746000" />
-      <workItem from="1734532414932" duration="8260000" />
+      <workItem from="1734532414932" duration="8728000" />
     </task>
     <task id="LOCAL-00001" summary="Bozza di reservation">
       <option name="closed" value="true" />

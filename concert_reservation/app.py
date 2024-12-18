@@ -8,7 +8,7 @@ from typing import Any, Tuple, Callable
 
 from valid8 import validate, ValidationError
 
-from concert_reservation.domain import Author, Title, Venue, Rating, Review, ReviewArchive
+from concert_reservation.domain import Author, Title, Genre, Venue, Rating, Review, ReviewArchive
 from concert_reservation.menu import Menu, Description, Entry
 
 
@@ -120,7 +120,7 @@ class App:
         self.__print_reviews_internal(reviews)
 
     #Da rivedere insieme a client
-    def __add_review(self): #id, client, title, date
+    def __add_review(self):
         author = self.__read('Author', Author)
         title = self.__read('Title', Title)
         content = self.__read('Content', Content)
